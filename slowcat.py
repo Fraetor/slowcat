@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument(
         "--version",
         action="version",
-        version="0.1.0",
+        version="%(prog)s 1.0.0",
         help="show version information and exit",
     )
     return parser.parse_args()
