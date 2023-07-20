@@ -19,9 +19,9 @@ def parse_args():
     )
     parser.add_argument(
         "FILE",
-        type=argparse.FileType("rb"),
         help="the file(s) to read; use - or omit for standard input",
-        default=sys.stdin.buffer,
+        default=["-"],
+        nargs="*",
     )
     parser.add_argument(
         "--version",
@@ -36,13 +36,28 @@ def main():
     """Program entry point"""
     args = parse_args()
     delay: float = 1.0 / args.rate
-    byte: bytes = b"1"
-    while byte:
-        byte = args.FILE.read(1)
-        sys.stdout.buffer.write(byte)
-        sys.stdout.buffer.flush()
-        time.sleep(delay)
+    for filename in args.FILE:
+        if filename == "-":
+            file = sys.stdin.buffer
+        else:
+            try:
+                file = open(filename, "rb")
+            except OSError:
+                print(f"[ERROR] {filename} is not a readable file", file=sys.stderr)
+                sys.exit(1)
+        byte: bytes = b"1"
+        while byte:
+            byte = file.read(1)
+            sys.stdout.buffer.write(byte)
+            sys.stdout.buffer.flush()
+            time.sleep(delay)
+        file.close()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        # Exit on a new line
+        print(file=sys.stderr)
+        sys.exit(1)
